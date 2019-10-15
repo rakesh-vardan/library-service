@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -27,8 +28,11 @@ public class LibraryController {
 
     private static Logger logger = LoggerFactory.getLogger(LibraryController.class);
 
-    private final String booksUri = "http://localhost:8082/api/books/";
-    private final String usersUri = "http://localhost:8083/api/users/";
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private final String booksUri = "http://book-service/api/books/";
+    private final String usersUri = "http://user-service/api/users/";
 
     /*API calls to Books micro service
      * Which includes all CRUD operations on Book
@@ -43,7 +47,7 @@ public class LibraryController {
     })
     public ResponseEntity<Object> getAllBooks() {
         logger.info("Getting all the available books from the library");
-        ResponseEntity<Object> apiResponse = new RestTemplate().getForEntity(booksUri, Object.class);
+        ResponseEntity<Object> apiResponse = restTemplate.getForEntity(booksUri, Object.class);
         return new ResponseEntity<>(apiResponse.getBody(), HttpStatus.OK);
     }
 
@@ -53,8 +57,7 @@ public class LibraryController {
             @ApiParam(value = "Enter the id of the book to retrieve from library", required = true)
             @PathVariable Long id) {
         logger.info("Fetching the book details with an id from the library: {}", id);
-        ResponseEntity<Object> apiResponse = new RestTemplate()
-                .getForEntity(booksUri + id, Object.class);
+        ResponseEntity<Object> apiResponse = restTemplate.getForEntity(booksUri + id, Object.class);
         return new ResponseEntity<>(apiResponse.getBody(), HttpStatus.OK);
     }
 
@@ -63,7 +66,7 @@ public class LibraryController {
     public ResponseEntity<Object> addNewBook(
             @ApiParam(value = "New Book details object to save the book information to library", required = true)
             @RequestBody Book book) {
-        ResponseEntity<Book> apiResponse = new RestTemplate().postForEntity(booksUri, book, Book.class);
+        ResponseEntity<Book> apiResponse = restTemplate.postForEntity(booksUri, book, Book.class);
         logger.info("Successfully added a new book to the library: {}", Objects.requireNonNull(apiResponse.getBody())
                 .getId());
         Result result = new Result(apiResponse.getBody().getId());
@@ -78,9 +81,8 @@ public class LibraryController {
         if (!book.getId().equals(id)) {
             throw new LibraryException("Unable to find the entity to update");
         }
-
         HttpEntity httpEntity = new HttpEntity(book);
-        new RestTemplate().exchange(booksUri + id, HttpMethod.PUT, httpEntity, Book.class);
+        restTemplate.exchange(booksUri + id, HttpMethod.PUT, httpEntity, Book.class);
     }
 
     @DeleteMapping("/books/{id}")
@@ -88,7 +90,7 @@ public class LibraryController {
     public void deleteBook(
             @ApiParam(value = "Book Id to delete the data from the library", required = true) @PathVariable Long id) {
         logger.info("Deleting the book from the library: {}", id);
-        new RestTemplate().delete(booksUri + id);
+        restTemplate.delete(booksUri + id);
     }
 
     /*API calls to Users micro service
@@ -104,7 +106,7 @@ public class LibraryController {
     })
     public ResponseEntity<Object> getAllUsers() {
         logger.info("Getting all the available users from the library");
-        ResponseEntity<Object> apiResponse = new RestTemplate().getForEntity(usersUri, Object.class);
+        ResponseEntity<Object> apiResponse = restTemplate.getForEntity(usersUri, Object.class);
         return new ResponseEntity<>(apiResponse.getBody(), HttpStatus.OK);
     }
 
@@ -114,8 +116,7 @@ public class LibraryController {
             @ApiParam(value = "Enter the id of the user to retrieve from library", required = true)
             @PathVariable Long id) {
         logger.info("Fetching the user details with an id from the library: {}", id);
-        ResponseEntity<Object> apiResponse = new RestTemplate()
-                .getForEntity(usersUri + id, Object.class);
+        ResponseEntity<Object> apiResponse = restTemplate.getForEntity(usersUri + id, Object.class);
         return new ResponseEntity<>(apiResponse.getBody(), HttpStatus.OK);
     }
 
@@ -124,7 +125,7 @@ public class LibraryController {
     public ResponseEntity<Object> addNewUser(
             @ApiParam(value = "New User details object to save the book information to library")
             @RequestBody User user) {
-        ResponseEntity<User> apiResponse = new RestTemplate().postForEntity(usersUri, user, User.class);
+        ResponseEntity<User> apiResponse = restTemplate.postForEntity(usersUri, user, User.class);
         logger.info("Successfully added a new user to the library: {}", Objects.requireNonNull(apiResponse.getBody()).getId());
         Result result = new Result(apiResponse.getBody().getId());
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -140,7 +141,7 @@ public class LibraryController {
         }
 
         HttpEntity httpEntity = new HttpEntity(user);
-        new RestTemplate().exchange(usersUri + id, HttpMethod.PUT, httpEntity, User.class);
+        restTemplate.exchange(usersUri + id, HttpMethod.PUT, httpEntity, User.class);
     }
 
     @DeleteMapping("/users/{id}")
@@ -148,6 +149,6 @@ public class LibraryController {
     public void deleteUser(
             @ApiParam(value = "User Id to delete the data from the library", required = true) @PathVariable Long id) {
         logger.info("Deleting the user from the library: {}", id);
-        new RestTemplate().delete(usersUri + id);
+        restTemplate.delete(usersUri + id);
     }
 }
