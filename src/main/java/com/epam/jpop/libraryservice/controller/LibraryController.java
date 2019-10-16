@@ -4,6 +4,8 @@ import com.epam.jpop.libraryservice.domain.Book;
 import com.epam.jpop.libraryservice.domain.Result;
 import com.epam.jpop.libraryservice.domain.User;
 import com.epam.jpop.libraryservice.exception.LibraryException;
+import com.epam.jpop.libraryservice.feign.BookClient;
+import com.epam.jpop.libraryservice.feign.UserClient;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -23,13 +25,19 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("api/lib")
+@RequestMapping("/api/lib")
 public class LibraryController {
 
     private static Logger logger = LoggerFactory.getLogger(LibraryController.class);
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private BookClient bookClient;
+
+    @Autowired
+    private UserClient userClient;
 
     private final String booksUri = "http://book-service/api/books/";
     private final String usersUri = "http://user-service/api/users/";
@@ -96,6 +104,7 @@ public class LibraryController {
     /*API calls to Users micro service
      * Which includes all CRUD operations on User
      */
+
     @GetMapping("/users")
     @ApiOperation(value = "View list of all available users in the library", response = List.class)
     @ApiResponses(value = {
@@ -150,5 +159,56 @@ public class LibraryController {
             @ApiParam(value = "User Id to delete the data from the library", required = true) @PathVariable Long id) {
         logger.info("Deleting the user from the library: {}", id);
         restTemplate.delete(usersUri + id);
+    }
+
+    /*Using Feign clients with version 2*/
+    @GetMapping("/books/v2")
+    public List<Book> getBooks() {
+        return bookClient.getBooks();
+    }
+
+    @GetMapping("/books/v2/{id}")
+    public Book getSingleBook(@PathVariable Long id) {
+        return bookClient.getBook(id);
+    }
+
+    @PostMapping("/books/v2")
+    public Book addSingleBook(@RequestBody Book book) {
+        return bookClient.addBook(book);
+    }
+
+    @PutMapping("/books/v2/{id}")
+    public Book updateSingleBook(@RequestBody Book book, @PathVariable Long id) {
+        return bookClient.updateBook(book, id);
+    }
+
+    @DeleteMapping("/books/v2/{id}")
+    public Book deleteSingleBook(@PathVariable Long id) {
+        return bookClient.deleteBook(id);
+    }
+
+    @GetMapping("/users/v2")
+    public List<User> getUsers() {
+        return userClient.getUsers();
+    }
+
+    @GetMapping("/users/v2/{id}")
+    public User getSingleUser(@PathVariable Long id) {
+        return userClient.getUser(id);
+    }
+
+    @PostMapping("/users/v2")
+    public User addSingleUser(@RequestBody User user) {
+        return userClient.addUser(user);
+    }
+
+    @PutMapping("/users/v2/{id}")
+    public User updateSingleUser(@RequestBody User user, @PathVariable Long id) {
+        return userClient.updateUser(user, id);
+    }
+
+    @DeleteMapping("/users/v2/{id}")
+    public User deleteSingleUser(@PathVariable Long id) {
+        return userClient.deleteUser(id);
     }
 }
