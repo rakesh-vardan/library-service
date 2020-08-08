@@ -1,15 +1,14 @@
 server:
   port: 8081
-
 spring:
   application:
     name: library-service
-
 eureka:
   client:
+    registerWithEureka: true
+    fetchRegistry: true
     serviceUrl:
       defaultZone: ${EUREKA_SERVER}
-
 feign:
   client:
     config:
