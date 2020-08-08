@@ -3,15 +3,16 @@ server:
 spring:
   application:
     name: library-service
-eureka:
-  client:
-    registerWithEureka: true
-    fetchRegistry: true
-    serviceUrl:
-      defaultZone: ${EUREKA_SERVER}
 feign:
   client:
     config:
       default:
         connectTimeout: 30000
         readTimeout: 30000
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URL:http://localhost:8761}/eureka/
+    eureka-server-port: 8761
+    register-with-eureka: true
+    fetch-registry: true
